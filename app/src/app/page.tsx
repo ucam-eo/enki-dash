@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DistributionCharts from "@/components/DistributionCharts";
 
 interface SpeciesRecord {
   species_key: number;
@@ -150,10 +151,10 @@ export default function Home() {
               <div className="text-sm text-zinc-500">Median Occurrences</div>
             </div>
             <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
-              <div className="text-2xl font-bold text-orange-600">
-                {getPercentage(stats.distribution.lte100, stats.total)}%
+              <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {formatNumber(Math.round(stats.totalOccurrences / stats.total))}
               </div>
-              <div className="text-sm text-zinc-500">Data-Deficient (≤100)</div>
+              <div className="text-sm text-zinc-500">Mean Occurrences</div>
             </div>
           </div>
         )}
@@ -189,6 +190,9 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Distribution Charts */}
+        <DistributionCharts />
 
         {/* Filters and Controls */}
         <div className="flex flex-wrap gap-4 mb-6">
