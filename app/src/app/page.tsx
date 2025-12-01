@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 
 // Dynamically import Leaflet components
@@ -89,7 +89,7 @@ interface ApiResponse {
 
 type FilterPreset = "all" | "dataDeficient" | "veryRare" | "singletons";
 type RegionMode = "global" | "cambridge";
-type ModalTab = "details" | "map";
+type ExpandedTab = "details" | "map";
 
 // ============================================================================
 // Constants
@@ -210,17 +210,18 @@ function StatsCards({ stats }: { stats: Stats }) {
   );
 }
 
-interface SpeciesModalProps {
+interface ExpandedRowProps {
   species: SpeciesDetails | null;
   speciesKey: number;
   occurrenceCount: number;
   regionMode: RegionMode;
   onClose: () => void;
   mounted: boolean;
+  colSpan: number;
 }
 
-function SpeciesModal({ species, speciesKey, occurrenceCount, regionMode, onClose, mounted }: SpeciesModalProps) {
-  const [activeTab, setActiveTab] = useState<ModalTab>("details");
+function ExpandedRow({ species, speciesKey, occurrenceCount, regionMode, onClose, mounted, colSpan }: ExpandedRowProps) {
+  const [activeTab, setActiveTab] = useState<ExpandedTab>("details");
   const [occurrences, setOccurrences] = useState<OccurrenceFeature[]>([]);
   const [loadingOccurrences, setLoadingOccurrences] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(!species);
@@ -253,193 +254,178 @@ function SpeciesModal({ species, speciesKey, occurrenceCount, regionMode, onClos
   }, [activeTab, speciesKey, config.occurrencesEndpoint, occurrences.length, loadingOccurrences]);
 
   const displaySpecies = details || species;
-  const displayName = displaySpecies?.canonicalName || `Species ${speciesKey}`;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div
-        className="bg-white dark:bg-zinc-900 rounded-2xl max-w-4xl w-full shadow-xl max-h-[90vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 italic">
-                {loadingDetails ? "Loading..." : displayName}
-              </h2>
-              {displaySpecies?.vernacularName && (
-                <p className="text-zinc-500">{displaySpecies.vernacularName}</p>
-              )}
-              <p className="text-sm text-zinc-400 mt-1">
-                {formatNumber(occurrenceCount)} occurrences {regionMode === "cambridge" ? "in Cambridge" : "worldwide"}
-              </p>
+    <tr>
+      <td colSpan={colSpan} className="p-0">
+        <div className="bg-zinc-50 dark:bg-zinc-800/50 border-t border-b border-zinc-200 dark:border-zinc-700">
+          {/* Header with tabs and close */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab("details")}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "details"
+                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : "text-zinc-600 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                }`}
+              >
+                Details
+              </button>
+              <button
+                onClick={() => setActiveTab("map")}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                  activeTab === "map"
+                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                    : "text-zinc-600 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                Map
+              </button>
             </div>
-            <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600 p-1">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === "details"
-                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              Details
-            </button>
-            <button
-              onClick={() => setActiveTab("map")}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
-                activeTab === "map"
-                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-              Occurrences Map
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-auto p-6">
-          {activeTab === "details" ? (
-            loadingDetails ? (
-              <div className="flex items-center justify-center h-48">
-                <div className="text-zinc-400">Loading species details...</div>
-              </div>
-            ) : displaySpecies ? (
-              <div>
-                {displaySpecies.imageUrl && (
-                  <img
-                    src={displaySpecies.imageUrl}
-                    alt=""
-                    className="w-full h-48 object-cover rounded-lg mb-6"
-                  />
-                )}
-                <dl className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <dt className="text-zinc-500">Kingdom</dt>
-                    <dd className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {displaySpecies.kingdom || "—"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">Family</dt>
-                    <dd className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {displaySpecies.family || "—"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">Genus</dt>
-                    <dd className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {displaySpecies.genus || "—"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-zinc-500">GBIF Key</dt>
-                    <dd className="font-mono text-zinc-900 dark:text-zinc-100">
-                      {displaySpecies.key}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="mt-6">
-                  <a
-                    href={displaySpecies.gbifUrl || `https://www.gbif.org/species/${speciesKey}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
-                    View on GBIF
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
+          {/* Content */}
+          <div className="p-4">
+            {activeTab === "details" ? (
+              loadingDetails ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="text-zinc-400">Loading species details...</div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-zinc-400">Unable to load species details</div>
-            )
-          ) : (
-            /* Map Tab */
-            <div className="h-[500px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
-              {loadingOccurrences ? (
-                <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-800">
-                  <div className="text-zinc-400">Loading occurrences...</div>
-                </div>
-              ) : mounted ? (
-                <MapContainer
-                  center={config.center}
-                  zoom={config.zoom}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {config.bounds && (
-                    <Rectangle
-                      bounds={config.bounds}
-                      pathOptions={{ color: "#22c55e", weight: 2, fillOpacity: 0.05 }}
+              ) : displaySpecies ? (
+                <div className="flex gap-6">
+                  {displaySpecies.imageUrl && (
+                    <img
+                      src={displaySpecies.imageUrl}
+                      alt=""
+                      className="w-32 h-32 object-cover rounded-lg flex-shrink-0"
                     />
                   )}
-                  {occurrences.map((feature, idx) => {
-                    const [lon, lat] = feature.geometry.coordinates;
-                    return (
-                      <CircleMarker
-                        key={feature.properties.gbifID || idx}
-                        center={[lat, lon]}
-                        radius={6}
-                        pathOptions={{
-                          color: "#3b82f6",
-                          fillColor: "#3b82f6",
-                          fillOpacity: 0.7,
-                          weight: 1,
-                        }}
+                  <div className="flex-1 min-w-0">
+                    <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <dt className="text-zinc-500">Kingdom</dt>
+                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {displaySpecies.kingdom || "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-500">Family</dt>
+                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {displaySpecies.family || "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-500">Genus</dt>
+                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {displaySpecies.genus || "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-500">Occurrences</dt>
+                        <dd className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {formatNumber(occurrenceCount)} {regionMode === "cambridge" ? "(Cambridge)" : "(Global)"}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="mt-4">
+                      <a
+                        href={displaySpecies.gbifUrl || `https://www.gbif.org/species/${speciesKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700"
                       >
-                        <Popup>
-                          <div className="text-sm">
-                            <div className="font-medium italic">{feature.properties.species}</div>
-                            {feature.properties.eventDate && (
-                              <div className="text-xs">{feature.properties.eventDate}</div>
-                            )}
-                            <div className="text-xs text-gray-500">
-                              {lat.toFixed(4)}, {lon.toFixed(4)}
-                            </div>
-                            <a
-                              href={`https://www.gbif.org/occurrence/${feature.properties.gbifID}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-1 inline-block"
-                            >
-                              View on GBIF →
-                            </a>
-                          </div>
-                        </Popup>
-                      </CircleMarker>
-                    );
-                  })}
-                </MapContainer>
-              ) : null}
-              {!loadingOccurrences && occurrences.length > 0 && (
-                <div className="absolute bottom-4 left-4 bg-white dark:bg-zinc-800 px-3 py-1 rounded-full text-sm text-zinc-600 dark:text-zinc-300 shadow">
-                  {occurrences.length} occurrences shown
+                        View on GBIF
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              ) : (
+                <div className="text-zinc-400">Unable to load species details</div>
+              )
+            ) : (
+              /* Map Tab */
+              <div className="h-[300px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative">
+                {loadingOccurrences ? (
+                  <div className="flex items-center justify-center h-full bg-zinc-100 dark:bg-zinc-800">
+                    <div className="text-zinc-400">Loading occurrences...</div>
+                  </div>
+                ) : mounted ? (
+                  <MapContainer
+                    center={config.center}
+                    zoom={config.zoom}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {config.bounds && (
+                      <Rectangle
+                        bounds={config.bounds}
+                        pathOptions={{ color: "#22c55e", weight: 2, fillOpacity: 0.05 }}
+                      />
+                    )}
+                    {occurrences.map((feature, idx) => {
+                      const [lon, lat] = feature.geometry.coordinates;
+                      return (
+                        <CircleMarker
+                          key={feature.properties.gbifID || idx}
+                          center={[lat, lon]}
+                          radius={6}
+                          pathOptions={{
+                            color: "#3b82f6",
+                            fillColor: "#3b82f6",
+                            fillOpacity: 0.7,
+                            weight: 1,
+                          }}
+                        >
+                          <Popup>
+                            <div className="text-sm">
+                              <div className="font-medium italic">{feature.properties.species}</div>
+                              {feature.properties.eventDate && (
+                                <div className="text-xs">{feature.properties.eventDate}</div>
+                              )}
+                              <div className="text-xs text-gray-500">
+                                {lat.toFixed(4)}, {lon.toFixed(4)}
+                              </div>
+                              <a
+                                href={`https://www.gbif.org/occurrence/${feature.properties.gbifID}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 hover:underline mt-1 inline-block"
+                              >
+                                View on GBIF →
+                              </a>
+                            </div>
+                          </Popup>
+                        </CircleMarker>
+                      );
+                    })}
+                  </MapContainer>
+                ) : null}
+                {!loadingOccurrences && occurrences.length > 0 && (
+                  <div className="absolute bottom-2 left-2 bg-white dark:bg-zinc-800 px-2 py-1 rounded text-xs text-zinc-600 dark:text-zinc-300 shadow">
+                    {occurrences.length} occurrences shown
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 }
 
@@ -627,8 +613,13 @@ export default function Home() {
   };
 
   const handleRowClick = (speciesKey: number, occurrenceCount: number) => {
-    setSelectedSpeciesKey(speciesKey);
-    setSelectedOccurrenceCount(occurrenceCount);
+    // Toggle: if clicking the same row, close it; otherwise open the new one
+    if (selectedSpeciesKey === speciesKey) {
+      setSelectedSpeciesKey(null);
+    } else {
+      setSelectedSpeciesKey(speciesKey);
+      setSelectedOccurrenceCount(occurrenceCount);
+    }
   };
 
   return (
@@ -780,28 +771,40 @@ export default function Home() {
                 </tr>
               ) : searchResults !== null ? (
                 searchResults.map((species) => (
-                  <tr
-                    key={species.key}
-                    className="hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"
-                    onClick={() => handleRowClick(species.key, species.occurrenceCount || 0)}
-                  >
-                    <td className="px-4 py-2">
-                      {species.imageUrl ? (
-                        <img src={species.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />
-                      ) : (
-                        <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded" />
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      {species.vernacularName || "—"}
-                    </td>
-                    <td className="px-4 py-2 text-sm italic text-zinc-900 dark:text-zinc-100">
-                      {species.canonicalName}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-right font-medium text-zinc-900 dark:text-zinc-100">
-                      {species.occurrenceCount ? formatNumber(species.occurrenceCount) : "—"}
-                    </td>
-                  </tr>
+                  <React.Fragment key={species.key}>
+                    <tr
+                      className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer ${selectedSpeciesKey === species.key ? "bg-zinc-100 dark:bg-zinc-800" : ""}`}
+                      onClick={() => handleRowClick(species.key, species.occurrenceCount || 0)}
+                    >
+                      <td className="px-4 py-2">
+                        {species.imageUrl ? (
+                          <img src={species.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />
+                        ) : (
+                          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded" />
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        {species.vernacularName || "—"}
+                      </td>
+                      <td className="px-4 py-2 text-sm italic text-zinc-900 dark:text-zinc-100">
+                        {species.canonicalName}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-right font-medium text-zinc-900 dark:text-zinc-100">
+                        {species.occurrenceCount ? formatNumber(species.occurrenceCount) : "—"}
+                      </td>
+                    </tr>
+                    {selectedSpeciesKey === species.key && (
+                      <ExpandedRow
+                        species={species}
+                        speciesKey={species.key}
+                        occurrenceCount={species.occurrenceCount || 0}
+                        regionMode={regionMode}
+                        onClose={() => setSelectedSpeciesKey(null)}
+                        mounted={mounted}
+                        colSpan={4}
+                      />
+                    )}
+                  </React.Fragment>
                 ))
               ) : (
                 data.map((record, index) => {
@@ -817,27 +820,39 @@ export default function Home() {
                   const commonName = cached?.vernacularName || record.vernacularName || (isLoading ? "..." : "—");
 
                   return (
-                    <tr
-                      key={record.species_key}
-                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer"
-                      onClick={() => handleRowClick(record.species_key, record.occurrence_count)}
-                    >
-                      <td className="px-4 py-2 text-sm text-zinc-500">#{formatNumber(rank)}</td>
-                      <td className="px-4 py-2">
-                        {isLoading ? (
-                          <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse" />
-                        ) : cached?.imageUrl ? (
-                          <img src={cached.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />
-                        ) : (
-                          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded" />
-                        )}
-                      </td>
-                      <td className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400">{commonName}</td>
-                      <td className="px-4 py-2 text-sm italic text-zinc-900 dark:text-zinc-100">{displayName}</td>
-                      <td className="px-4 py-2 text-sm text-right font-medium text-zinc-900 dark:text-zinc-100">
-                        {formatNumber(record.occurrence_count)}
-                      </td>
-                    </tr>
+                    <React.Fragment key={record.species_key}>
+                      <tr
+                        className={`hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer ${selectedSpeciesKey === record.species_key ? "bg-zinc-100 dark:bg-zinc-800" : ""}`}
+                        onClick={() => handleRowClick(record.species_key, record.occurrence_count)}
+                      >
+                        <td className="px-4 py-2 text-sm text-zinc-500">#{formatNumber(rank)}</td>
+                        <td className="px-4 py-2">
+                          {isLoading ? (
+                            <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse" />
+                          ) : cached?.imageUrl ? (
+                            <img src={cached.imageUrl} alt="" className="w-16 h-16 object-cover rounded" />
+                          ) : (
+                            <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-800 rounded" />
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400">{commonName}</td>
+                        <td className="px-4 py-2 text-sm italic text-zinc-900 dark:text-zinc-100">{displayName}</td>
+                        <td className="px-4 py-2 text-sm text-right font-medium text-zinc-900 dark:text-zinc-100">
+                          {formatNumber(record.occurrence_count)}
+                        </td>
+                      </tr>
+                      {selectedSpeciesKey === record.species_key && (
+                        <ExpandedRow
+                          species={cached || null}
+                          speciesKey={record.species_key}
+                          occurrenceCount={record.occurrence_count}
+                          regionMode={regionMode}
+                          onClose={() => setSelectedSpeciesKey(null)}
+                          mounted={mounted}
+                          colSpan={5}
+                        />
+                      )}
+                    </React.Fragment>
                   );
                 })
               )}
@@ -868,18 +883,6 @@ export default function Home() {
               </button>
             </div>
           </div>
-        )}
-
-        {/* Unified Species Modal */}
-        {selectedSpeciesKey && (
-          <SpeciesModal
-            species={speciesCache[selectedSpeciesKey] || null}
-            speciesKey={selectedSpeciesKey}
-            occurrenceCount={selectedOccurrenceCount}
-            regionMode={regionMode}
-            onClose={() => setSelectedSpeciesKey(null)}
-            mounted={mounted}
-          />
         )}
       </main>
     </div>
