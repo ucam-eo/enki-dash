@@ -19,7 +19,7 @@ export default function LocateControl() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        map.setView([latitude, longitude], 12);
+        map.setView([latitude, longitude], 18);
         setLocating(false);
       },
       (error) => {
