@@ -38,3 +38,4 @@ __pycache__/
 # Project outputs (large files, regeneratable)
 cache/
 output/
+brambles-tessera/
