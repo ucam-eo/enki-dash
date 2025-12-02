@@ -520,15 +520,6 @@ export default function ExperimentPage() {
           </div>
         </div>
 
-        {/* Back link */}
-        <div className="mt-6">
-          <a
-            href="/"
-            className="text-sm text-green-600 hover:text-green-700 hover:underline"
-          >
-            ← Back to Species Explorer
-          </a>
-        </div>
       </main>
     </div>
   );

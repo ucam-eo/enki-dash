@@ -166,8 +166,8 @@ function getProbabilityColor(probability: number): string {
 }
 
 // Get candidate key from canonical name (just lowercase it to match API format)
-function getCandidateKey(canonicalName: string | undefined): string | null {
-  if (!canonicalName) return null;
+function getCandidateKey(canonicalName: string | undefined): string | undefined {
+  if (!canonicalName) return undefined;
   return canonicalName.toLowerCase();
 }
 
@@ -654,11 +654,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 md:p-8">
       <main className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Subtitle */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-            Plant Species Data Explorer
-          </h1>
           <p className="text-zinc-600 dark:text-zinc-400">
             {stats
               ? `Explore ${formatNumber(stats.total)} plant species - ${config.description}`
@@ -855,7 +852,7 @@ export default function Home() {
                         regionMode={regionMode}
                         mounted={mounted}
                         colSpan={5}
-                        hasCandidates={!!getCandidateKey(species.canonicalName) && availableCandidates.includes(getCandidateKey(species.canonicalName)!)}
+                        hasCandidates={!!getCandidateKey(species.canonicalName) && availableCandidates.includes(getCandidateKey(species.canonicalName) ?? "")}
                       />
                     )}
                   </React.Fragment>
@@ -880,7 +877,7 @@ export default function Home() {
                   const displayName = cached?.canonicalName || record.canonicalName || (isLoading ? "Loading..." : "—");
                   const commonName = cached?.vernacularName || record.vernacularName || (isLoading ? "..." : "—");
                   const candidateKey = getCandidateKey(displayName);
-                  const hasCandidates = candidateKey && availableCandidates.includes(candidateKey);
+                  const hasCandidates = !!(candidateKey && availableCandidates.includes(candidateKey));
 
                   return (
                     <React.Fragment key={record.species_key}>
