@@ -155,38 +155,35 @@ function WorldMap({ selectedCountry, onCountrySelect, onClearSelection }: WorldM
   const hoveredStats = hoveredCountryCode ? countryStats[hoveredCountryCode] : null;
 
   return (
-    <div className="relative">
+    <div className="relative bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800 p-5 h-full flex flex-col">
       {/* Header with controls */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
             Explore by Country
           </h2>
-          <p className="text-sm text-zinc-500">
+          <p className="text-xs text-zinc-500">
             {selectedCountry
-              ? `Viewing: ${ALPHA2_TO_NAME[selectedCountry] || selectedCountry} · Click again to return to global`
-              : "Click a country to filter by region"}
+              ? `${ALPHA2_TO_NAME[selectedCountry] || selectedCountry} · Click to deselect`
+              : "Click a country to filter"}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Heatmap toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500">Heatmap:</span>
-            <select
-              value={heatmapMode}
-              onChange={(e) => setHeatmapMode(e.target.value as HeatmapMode)}
-              className="text-xs px-2 py-1 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
-            >
-              <option value="occurrences">Occurrences</option>
-              <option value="none">Off</option>
-            </select>
-          </div>
+          <select
+            value={heatmapMode}
+            onChange={(e) => setHeatmapMode(e.target.value as HeatmapMode)}
+            className="text-xs px-2 py-1 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+          >
+            <option value="occurrences">Heatmap</option>
+            <option value="none">Off</option>
+          </select>
           {selectedCountry && (
             <button
               onClick={onClearSelection}
-              className="px-3 py-1 text-sm text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+              className="px-2 py-1 text-xs text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded transition-colors"
             >
-              Back to Global
+              Reset
             </button>
           )}
         </div>
@@ -194,7 +191,7 @@ function WorldMap({ selectedCountry, onCountrySelect, onClearSelection }: WorldM
 
       {/* Hover tooltip */}
       {hoveredCountry && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 bg-white dark:bg-zinc-800 px-3 py-2 rounded shadow-lg text-sm text-zinc-700 dark:text-zinc-300 pointer-events-none">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10 bg-white dark:bg-zinc-800 px-3 py-2 rounded shadow-lg text-sm text-zinc-700 dark:text-zinc-300 pointer-events-none">
           <div className="font-medium">{hoveredCountry}</div>
           {hoveredStats && (
             <div className="text-xs text-zinc-500">
@@ -205,7 +202,7 @@ function WorldMap({ selectedCountry, onCountrySelect, onClearSelection }: WorldM
       )}
 
       {/* Map */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden relative">
+      <div className="flex-1 rounded-lg overflow-hidden relative">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-zinc-900/50 z-10">
             <div className="text-sm text-zinc-500">Loading heatmap data...</div>
@@ -213,11 +210,11 @@ function WorldMap({ selectedCountry, onCountrySelect, onClearSelection }: WorldM
         )}
         <ComposableMap
           projectionConfig={{
-            scale: 120,
+            scale: 100,
             center: [0, 20],
           }}
-          height={300}
-          style={{ width: "100%", height: "auto", maxHeight: "300px" }}
+          height={280}
+          style={{ width: "100%", height: "auto" }}
         >
           <ZoomableGroup>
             <Geographies geography={GEO_URL}>

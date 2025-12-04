@@ -149,69 +149,22 @@ function getCandidateKey(canonicalName: string | undefined): string | undefined 
 // Components
 // ============================================================================
 
-function StatsCards({ stats }: { stats: Stats }) {
+function TotalsCards({ stats }: { stats: Stats }) {
   return (
-    <>
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
-          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            {formatNumber(stats.total)}
-          </div>
-          <div className="text-sm text-zinc-500">Total Species</div>
+    <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
+        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          {formatNumber(stats.total)}
         </div>
-        <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
-          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            {formatNumber(stats.totalOccurrences)}
-          </div>
-          <div className="text-sm text-zinc-500">Total Occurrences</div>
-        </div>
+        <div className="text-sm text-zinc-500">Total Species</div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="md:col-span-2 bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-            Distribution Breakdown
-          </h2>
-          <div className="space-y-3">
-            {[
-              { label: "≤ 1", count: stats.distribution.lte1 },
-              { label: "≤ 10", count: stats.distribution.lte10 },
-              { label: "≤ 100", count: stats.distribution.lte100 },
-              { label: "≤ 1,000", count: stats.distribution.lte1000 },
-              { label: "≤ 10,000", count: stats.distribution.lte10000 },
-            ].map(({ label, count }) => (
-              <div key={label} className="flex items-center gap-4">
-                <div className="w-20 text-sm text-zinc-600 dark:text-zinc-400">{label}</div>
-                <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-4 overflow-hidden">
-                  <div
-                    className="bg-orange-500 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${(count / stats.total) * 100}%` }}
-                  />
-                </div>
-                <div className="w-32 text-sm text-right text-zinc-600 dark:text-zinc-400">
-                  {formatNumber(count)} ({getPercentage(count, stats.total)}%)
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
+        <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          {formatNumber(stats.totalOccurrences)}
         </div>
-
-        <div className="flex flex-col gap-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800 flex-1">
-            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              {formatNumber(stats.median)}
-            </div>
-            <div className="text-sm text-zinc-500">Median Occurrences</div>
-          </div>
-          <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800 flex-1">
-            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              {formatNumber(Math.round(stats.totalOccurrences / stats.total))}
-            </div>
-            <div className="text-sm text-zinc-500">Mean Occurrences</div>
-          </div>
-        </div>
+        <div className="text-sm text-zinc-500">Total Occurrences</div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -665,19 +618,67 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Stats */}
-        {stats && <StatsCards stats={stats} />}
+        {/* Totals */}
+        {stats && <TotalsCards stats={stats} />}
 
-        {/* World Map - always visible, smaller */}
-        {mounted && (
-          <div className="mb-6">
+        {/* Map and Distribution side-by-side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* World Map */}
+          {mounted && (
             <WorldMap
               selectedCountry={selectedCountry}
               onCountrySelect={handleCountrySelect}
               onClearSelection={handleClearCountry}
             />
-          </div>
-        )}
+          )}
+
+          {/* Distribution breakdown */}
+          {stats && (
+            <div className="flex flex-col gap-4">
+              <div className="bg-white dark:bg-zinc-900 rounded-xl p-5 shadow-sm border border-zinc-200 dark:border-zinc-800 flex-1">
+                <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-3">
+                  Species by Occurrence Count
+                </h2>
+                <div className="space-y-2.5">
+                  {[
+                    { label: "≤ 1", count: stats.distribution.lte1 },
+                    { label: "≤ 10", count: stats.distribution.lte10 },
+                    { label: "≤ 100", count: stats.distribution.lte100 },
+                    { label: "≤ 1K", count: stats.distribution.lte1000 },
+                    { label: "≤ 10K", count: stats.distribution.lte10000 },
+                  ].map(({ label, count }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <div className="w-12 text-xs text-zinc-500 shrink-0">{label}</div>
+                      <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className="bg-orange-500 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${(count / stats.total) * 100}%` }}
+                        />
+                      </div>
+                      <div className="w-24 text-xs text-right text-zinc-500 shrink-0">
+                        {formatNumber(count)} ({getPercentage(count, stats.total)}%)
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {formatNumber(stats.median)}
+                  </div>
+                  <div className="text-xs text-zinc-500">Median per Species</div>
+                </div>
+                <div className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {formatNumber(Math.round(stats.totalOccurrences / stats.total))}
+                  </div>
+                  <div className="text-xs text-zinc-500">Mean per Species</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Search */}
         <div className="mb-6">
