@@ -621,17 +621,8 @@ export default function Home() {
         {/* Totals */}
         {stats && <TotalsCards stats={stats} />}
 
-        {/* Map and Distribution side-by-side */}
+        {/* Distribution and Map side-by-side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          {/* World Map */}
-          {mounted && (
-            <WorldMap
-              selectedCountry={selectedCountry}
-              onCountrySelect={handleCountrySelect}
-              onClearSelection={handleClearCountry}
-            />
-          )}
-
           {/* Distribution breakdown */}
           {stats && (
             <div className="flex flex-col gap-4">
@@ -677,6 +668,15 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* World Map */}
+          {mounted && (
+            <WorldMap
+              selectedCountry={selectedCountry}
+              onCountrySelect={handleCountrySelect}
+              onClearSelection={handleClearCountry}
+            />
           )}
         </div>
 
